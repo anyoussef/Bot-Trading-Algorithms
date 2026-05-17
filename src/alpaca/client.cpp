@@ -29,6 +29,22 @@ Account AlpacaClient::getAccount() {
   return returned_account;
 }
 
+std::vector<Position> AlpacaClient::getPositions() {
+
+  std::string response = get("/v2/positions", baseUrl);
+  std::vector<Position> position_list;
+  auto json = nlohmann::json::parse(response);
+  for (auto &item : json) {
+    Position position;
+    position.symbol = item["symbol"];
+    position.shares = item["qty"];
+    position.market_value = item["market_value"];
+    position.unrealized_pl = item["unrealized_pl"];
+    position_list.push_back(position);
+  }
+  return position_list;
+}
+
 std::vector<Bar> AlpacaClient::getMarketData(const std::string &symbol) {
 
   std::string endpoint =

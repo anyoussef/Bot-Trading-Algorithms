@@ -21,6 +21,7 @@ int main() {
   std::cout << "Portfolio Value: " << account.portfolio_value << std::endl;
 
   std::vector<Bar> bars = client.getMarketData("AAPL");
+  std::vector<Position> positions = client.getPositions();
 
   double fast = Strategy::movingAverage(bars, 50);
   double slow = Strategy::movingAverage(bars, 200);
@@ -29,9 +30,17 @@ int main() {
   std::cout << "200 day MA: " << slow << std::endl;
 
   if (fast > slow) {
-    std::cout << "Signal: BUY" << std::endl;
+    if (Strategy::hasPosition(positions, "AAPL")) {
+      std::cout << "Already own AAPL, holding" << std::endl;
+    } else {
+      std::cout << "Signal: BUY - Placing buy order" << std::endl;
+    }
   } else {
-    std::cout << "Signal: SELL" << std::endl;
+    if (Strategy::hasPosition(positions, "AAPL")) {
+      std::cout << "Signal: SELL - Placing sell order" << std::endl;
+    } else {
+      std::cout << "Nothing to sell" << std::endl;
+    }
   }
 
   return 0;

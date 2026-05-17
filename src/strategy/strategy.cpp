@@ -9,3 +9,14 @@ double Strategy::movingAverage(const std::vector<Bar> &bars, int n) {
   sum /= n;
   return sum;
 }
+
+bool Strategy::hasPosition(const std::vector<Position> &positions,
+                           const std::string &symbol) {
+
+  for (int i = 0; i < positions.size(); ++i) {
+    if (positions[i].symbol == symbol)
+      return true;
+  }
+
+  return false;
+}

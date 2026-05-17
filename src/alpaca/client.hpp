@@ -1,12 +1,15 @@
 #pragma once
 #include "account.hpp"
+#include "bar.hpp"
 #include <string>
+#include <vector>
 
 class AlpacaClient {
 public:
   AlpacaClient(const std::string &key, const std::string &secret);
 
   Account getAccount();
+  std::vector<Bar> getMarketData(const std::string &symbol);
   std::string getPositions();
   std::string placeOrder(const std::string &symbol, int qty,
                          const std::string &side);
@@ -16,6 +19,6 @@ private:
   std::string apiSecret;
   std::string baseUrl;
 
-  std::string get(const std::string &endpoint);
+  std::string get(const std::string &endpoint, const std::string &base);
   std::string post(const std::string &endpoint, const std::string &body);
 };

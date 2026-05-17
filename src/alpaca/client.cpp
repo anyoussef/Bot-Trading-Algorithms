@@ -18,7 +18,7 @@ AlpacaClient::AlpacaClient(const std::string &key, const std::string &secret) {
 
 Account AlpacaClient::getAccount() {
 
-  std::string response = get("/v2/account");
+  std::string response = get("/v2/account", baseUrl);
   Account returned_account;
 
   auto json = nlohmann::json::parse(response);
@@ -30,7 +30,31 @@ Account AlpacaClient::getAccount() {
   return returned_account;
 }
 
-std::string AlpacaClient::get(const std::string &endpoint) {
+std::vector<Bar> AlpacaClient::getMarketData(const std::string &symbol) {
+
+  std::string endpoint =
+      "/v2/stocks/" + symbol +
+      "/bars?timeframe=1Day&limit=200&feed=iex&start=2025-01-01";
+  std::string dataUrl = "https://data.alpaca.markets";
+  std::string response = get(endpoint, dataUrl);
+  std::vector<Bar> this_bar;
+
+  auto json = nlohmann::json::parse(response);
+  for (auto &item : json["bars"]) {
+    Bar bar;
+    bar.timestamp = item["t"];
+    bar.open = item["o"];
+    bar.high = item["h"];
+    bar.low = item["l"];
+    bar.close = item["c"];
+    bar.volume = item["v"];
+    this_bar.push_back(bar);
+  }
+  return this_bar;
+}
+
+std::string AlpacaClient::get(const std::string &endpoint,
+                              const std::string &base) {
 
   CURL *curl = curl_easy_init();
   std::string response;
@@ -38,7 +62,7 @@ std::string AlpacaClient::get(const std::string &endpoint) {
   if (curl) {
     CURLcode result;
 
-    curl_easy_setopt(curl, CURLOPT_URL, (baseUrl + endpoint).c_str());
+    curl_easy_setopt(curl, CURLOPT_URL, (base + endpoint).c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
 

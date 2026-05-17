@@ -1,6 +1,7 @@
 #pragma once
 #include "account.hpp"
 #include "bar.hpp"
+#include "order.hpp"
 #include "positions.hpp"
 #include <string>
 #include <vector>
@@ -11,6 +12,7 @@ public:
 
   Account getAccount();
   std::vector<Position> getPositions();
+  std::vector<Orders> getOrders();
   bool hasPosition(const std::vector<Position> &positions,
                    const std::string &symbol);
   std::vector<Bar> getMarketData(const std::string &symbol);

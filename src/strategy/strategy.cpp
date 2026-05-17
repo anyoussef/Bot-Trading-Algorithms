@@ -20,3 +20,14 @@ bool Strategy::hasPosition(const std::vector<Position> &positions,
 
   return false;
 }
+
+bool Strategy::hasOrder(const std::vector<Orders> &orders,
+                        const std::string &symbol) {
+
+  for (int i = 0; i < orders.size(); ++i) {
+    if (orders[i].symbol == symbol)
+      return true;
+  }
+
+  return false;
+}

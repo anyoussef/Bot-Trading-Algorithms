@@ -3,34 +3,83 @@
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
 
+// Curl callback
 size_t WriteCallback(void *contents, size_t size, size_t nmemb,
                      std::string *output) {
   output->append((char *)contents, size * nmemb);
   return size * nmemb;
 }
 
+// Constructor
 AlpacaClient::AlpacaClient(const std::string &key, const std::string &secret) {
   this->apiKey = key;
   this->apiSecret = secret;
   baseUrl = "https://paper-api.alpaca.markets";
 }
 
-Account AlpacaClient::getAccount() {
+// Private HTTP methods
+std::string AlpacaClient::get(const std::string &endpoint,
+                              const std::string &base) {
+  CURL *curl = curl_easy_init();
+  std::string response;
+  if (curl) {
+    CURLcode result;
+    curl_easy_setopt(curl, CURLOPT_URL, (base + endpoint).c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+    struct curl_slist *headers = nullptr;
+    headers =
+        curl_slist_append(headers, ("APCA-API-KEY-ID: " + apiKey).c_str());
+    headers = curl_slist_append(headers,
+                                ("APCA-API-SECRET-KEY: " + apiSecret).c_str());
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    result = curl_easy_perform(curl);
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
+  } else {
+    response += "FAILURE";
+    return response;
+  }
+  return response;
+}
 
+std::string AlpacaClient::post(const std::string &endpoint,
+                               const std::string &body) {
+  CURL *curl = curl_easy_init();
+  std::string response;
+  if (curl) {
+    curl_easy_setopt(curl, CURLOPT_URL, (baseUrl + endpoint).c_str());
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+    struct curl_slist *headers = nullptr;
+    headers =
+        curl_slist_append(headers, ("APCA-API-KEY-ID: " + apiKey).c_str());
+    headers = curl_slist_append(headers,
+                                ("APCA-API-SECRET-KEY: " + apiSecret).c_str());
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_perform(curl);
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
+  }
+  return response;
+}
+
+// Public API methods
+Account AlpacaClient::getAccount() {
   std::string response = get("/v2/account", baseUrl);
   Account returned_account;
-
   auto json = nlohmann::json::parse(response);
   returned_account.id = json["id"];
   returned_account.account_number = json["account_number"];
   returned_account.cash = json["cash"];
   returned_account.portfolio_value = json["portfolio_value"];
-
   return returned_account;
 }
 
 std::vector<Position> AlpacaClient::getPositions() {
-
   std::string response = get("/v2/positions", baseUrl);
   std::vector<Position> position_list;
   auto json = nlohmann::json::parse(response);
@@ -45,15 +94,28 @@ std::vector<Position> AlpacaClient::getPositions() {
   return position_list;
 }
 
-std::vector<Bar> AlpacaClient::getMarketData(const std::string &symbol) {
+std::vector<Orders> AlpacaClient::getOrders() {
+  std::string response = get("/v2/orders", baseUrl);
+  std::vector<Orders> order_list;
+  auto json = nlohmann::json::parse(response);
+  for (auto &item : json) {
+    Orders order;
+    order.symbol = item["symbol"];
+    order.status = item["status"];
+    order.side = item["side"];
+    order_list.push_back(order);
+  }
 
+  return order_list;
+}
+
+std::vector<Bar> AlpacaClient::getMarketData(const std::string &symbol) {
   std::string endpoint =
       "/v2/stocks/" + symbol +
       "/bars?timeframe=1Day&limit=200&feed=iex&start=2025-01-01";
   std::string dataUrl = "https://data.alpaca.markets";
   std::string response = get(endpoint, dataUrl);
   std::vector<Bar> this_bar;
-
   auto json = nlohmann::json::parse(response);
   for (auto &item : json["bars"]) {
     Bar bar;
@@ -68,36 +130,17 @@ std::vector<Bar> AlpacaClient::getMarketData(const std::string &symbol) {
   return this_bar;
 }
 
-std::string AlpacaClient::get(const std::string &endpoint,
-                              const std::string &base) {
+std::string AlpacaClient::placeOrder(const std::string &symbol, int qty,
+                                     const std::string &side) {
 
-  CURL *curl = curl_easy_init();
-  std::string response;
+  nlohmann::json body = {{"symbol", symbol},
+                         {"qty", qty},
+                         {"side", side},
+                         {"type", "market"},
+                         {"time_in_force", "day"}};
 
-  if (curl) {
-    CURLcode result;
+  std::string bodyStr = body.dump();
+  std::string endpoint = "/v2/orders";
 
-    curl_easy_setopt(curl, CURLOPT_URL, (base + endpoint).c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-
-    struct curl_slist *headers = nullptr;
-    headers =
-        curl_slist_append(headers, ("APCA-API-KEY-ID: " + apiKey).c_str());
-    headers = curl_slist_append(headers,
-                                ("APCA-API-SECRET-KEY: " + apiSecret).c_str());
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
-    result = curl_easy_perform(curl);
-
-    curl_slist_free_all(headers);
-    curl_easy_cleanup(curl);
-
-  } else {
-    curl_easy_cleanup(curl);
-    response += "FAILURE";
-    return response;
-  }
-
-  return response;
+  return post(endpoint, bodyStr);
 }

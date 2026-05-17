@@ -1,6 +1,7 @@
 #include "client.hpp"
 #include <cstddef>
 #include <curl/curl.h>
+#include <nlohmann/json.hpp>
 
 size_t WriteCallback(void *contents, size_t size, size_t nmemb,
                      std::string *output) {
@@ -15,7 +16,19 @@ AlpacaClient::AlpacaClient(const std::string &key, const std::string &secret) {
   baseUrl = "https://paper-api.alpaca.markets";
 }
 
-std::string AlpacaClient::getAccount() { return get("/v2/account"); }
+Account AlpacaClient::getAccount() {
+
+  std::string response = get("/v2/account");
+  Account returned_account;
+
+  auto json = nlohmann::json::parse(response);
+  returned_account.id = json["id"];
+  returned_account.account_number = json["account_number"];
+  returned_account.cash = json["cash"];
+  returned_account.portfolio_value = json["portfolio_value"];
+
+  return returned_account;
+}
 
 std::string AlpacaClient::get(const std::string &endpoint) {
 

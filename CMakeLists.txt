@@ -10,6 +10,10 @@ find_package(nlohmann_json REQUIRED)
 
 add_executable(alpaca_client src/main.cpp src/alpaca/client.cpp)
 
+target_include_directories(alpaca_client PRIVATE
+    /nix/store/xi7m5jy6y79s5c9nlqz89lvg4gcdvja7-nlohmann_json-3.12.0/include
+)
+
 target_link_libraries(alpaca_client PRIVATE
     CURL::libcurl
     nlohmann_json::nlohmann_json

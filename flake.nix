@@ -14,23 +14,34 @@
       {
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
-            # C++
             nlohmann_json
             curl
             clang
+            clang-tools
             cmake
-
-            # direnv integration
             direnv
-
-            # React (for later)
             nodejs
           ];
 
           shellHook = ''
-            exec zsh
+              export CC=clang
+              export CXX=clang++
+              if [ -f .env ]; then
+                export $(cat .env | xargs)
+              fi
+
+              cat > .clangd << EOF
+            CompileFlags:
+              CompilationDatabase: build/
+              Add:
+                - -isysroot/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
+                - -I${pkgs.nlohmann_json}/include
+            EOF
+
+              exec zsh
           '';
         };
       });
 }
+
 

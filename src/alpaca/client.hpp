@@ -1,11 +1,12 @@
 #pragma once
+#include "account.hpp"
 #include <string>
 
 class AlpacaClient {
 public:
   AlpacaClient(const std::string &key, const std::string &secret);
 
-  std::string getAccount();
+  Account getAccount();
   std::string getPositions();
   std::string placeOrder(const std::string &symbol, int qty,
                          const std::string &side);

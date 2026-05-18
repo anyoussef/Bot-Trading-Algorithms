@@ -7,6 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(CURL REQUIRED)
 find_package(nlohmann_json REQUIRED)
+find_package(Crow REQUIRED)
 
 add_executable(alpaca_client 
   src/main.cpp 
@@ -14,6 +15,7 @@ add_executable(alpaca_client
   src/strategy/strategy.cpp 
   src/strategy/ma.cpp
   src/strategy/rsi.cpp
+  src/server.cpp
 )
 
 target_include_directories(alpaca_client PRIVATE
@@ -23,4 +25,5 @@ target_include_directories(alpaca_client PRIVATE
 target_link_libraries(alpaca_client PRIVATE
     CURL::libcurl
     nlohmann_json::nlohmann_json
+    Crow::Crow
 )

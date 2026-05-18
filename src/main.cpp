@@ -1,4 +1,5 @@
 #include "alpaca/client.hpp"
+#include "server.hpp"
 #include "strategy/ma.hpp"
 #include "strategy/rsi.hpp"
 #include <chrono>
@@ -24,18 +25,19 @@ int main() {
     exit(1);
   }
 
+  // start server once
+  std::thread serverThread(runServer, ma_key, ma_secret, rsi_key, rsi_secret);
+
   while (true) {
     AlpacaClient clockClient(ma_key, ma_secret);
     Clock clock = clockClient.getClock();
 
     if (clock.is_open) {
       std::cout << "Market is open, running strategies..." << std::endl;
-
       std::thread maThread(runMAStrategy, "AAPL", ma_key, ma_secret);
       std::thread rsiThread(runRSIStrategy, "AAPL", rsi_key, rsi_secret);
       maThread.join();
       rsiThread.join();
-
       std::cout << "Strategies complete, sleeping 1 hour..." << std::endl;
       std::this_thread::sleep_for(std::chrono::hours(1));
     } else {
@@ -46,6 +48,7 @@ int main() {
     }
   }
 
+  serverThread.join();
   curl_global_cleanup();
   return 0;
 }

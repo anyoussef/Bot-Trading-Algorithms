@@ -21,27 +21,33 @@
             cmake
             direnv
             nodejs
+            crow
+            boost
+            boost.dev
+            pkgs.asio
           ];
 
           shellHook = ''
-              export CC=clang
-              export CXX=clang++
-              if [ -f .env ]; then
-                export $(cat .env | xargs)
-              fi
+                        export CC=clang
+                        export CXX=clang++
+                        if [ -f .env ]; then
+                          export $(cat .env | xargs)
+                        fi
 
-              cat > .clangd << EOF
+                        cat > .clangd << EOF
             CompileFlags:
               CompilationDatabase: build/
               Add:
                 - -isysroot/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
                 - -I${pkgs.nlohmann_json}/include
+                - -I${pkgs.crow}/include
+                - -I${pkgs.boost.dev}/include
+                - -I${pkgs.asio}/include
             EOF
 
-              exec zsh
+                        exec zsh
           '';
         };
       });
 }
-
 

@@ -6,6 +6,8 @@
 
 namespace Strategy {
 double movingAverage(const std::vector<Bar> &bars, int n);
+double calculateRSI(const std::vector<Bar> &bars);
+
 bool hasPosition(const std::vector<Position> &positions,
                  const std::string &symbol);
 bool hasOrder(const std::vector<Orders> &orders, const std::string &symbol);

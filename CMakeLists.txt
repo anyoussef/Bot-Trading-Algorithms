@@ -13,6 +13,7 @@ add_executable(alpaca_client
   src/alpaca/client.cpp 
   src/strategy/strategy.cpp 
   src/strategy/ma.cpp
+  src/strategy/rsi.cpp
 )
 
 target_include_directories(alpaca_client PRIVATE

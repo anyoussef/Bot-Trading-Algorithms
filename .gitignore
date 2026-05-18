@@ -1,6 +1,6 @@
 .clangd
 .cache/
 build/
-.env
+x.env
 *.o
 *.out

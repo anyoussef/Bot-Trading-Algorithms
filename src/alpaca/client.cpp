@@ -1,5 +1,4 @@
 #include "client.hpp"
-#include <cstddef>
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
 
@@ -23,7 +22,6 @@ std::string AlpacaClient::get(const std::string &endpoint,
   CURL *curl = curl_easy_init();
   std::string response;
   if (curl) {
-    CURLcode result;
     curl_easy_setopt(curl, CURLOPT_URL, (base + endpoint).c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
@@ -33,7 +31,7 @@ std::string AlpacaClient::get(const std::string &endpoint,
     headers = curl_slist_append(headers,
                                 ("APCA-API-SECRET-KEY: " + apiSecret).c_str());
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-    result = curl_easy_perform(curl);
+    curl_easy_perform(curl);
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
   } else {

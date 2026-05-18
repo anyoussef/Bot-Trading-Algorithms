@@ -1,4 +1,5 @@
 #include "client.hpp"
+#include "clock.hpp"
 #include <curl/curl.h>
 #include <iostream>
 #include <nlohmann/json.hpp>
@@ -158,4 +159,18 @@ std::string AlpacaClient::placeOrder(const std::string &symbol, int qty,
   std::string bodyStr = body.dump();
   std::string endpoint = "/v2/orders";
   return post(endpoint, bodyStr);
+}
+
+Clock AlpacaClient::getClock() {
+  std::string response = get("/v2/clock", baseUrl);
+  Clock clock;
+  try {
+    auto json = nlohmann::json::parse(response);
+    clock.is_open = json["is_open"];
+    clock.next_open = json["next_open"];
+    clock.next_close = json["next_close"];
+  } catch (const std::exception &e) {
+    std::cerr << "Clock parse error: " << e.what() << std::endl;
+  }
+  return clock;
 }
